@@ -93,12 +93,13 @@ class Source::Parser < Struct.new(:url, :source)
   end
 
   def to_events_api_helper(url, error_key="error", &block)
-    # Extract +event_id+ from :url using +url_pattern+.
-    event_id = url[self.class.url_pattern, 1]
-    return false unless event_id # Give up unless we find the identifier.
+    # Extract  +group_name+ and +event_id+ from :url using +url_pattern+.
+    group_name = url[self.class.url_pattern, 1]
+    event_id = url[self.class.url_pattern, 2]
+    return false unless group_name && event_id # Give up unless we find the identifiers.
 
     # Get URL and params for using the API.
-    url, params = *block.call(event_id)
+    url, params = *block.call(group_name, event_id)
 
     # Get data from the API.
     data = RestClient.get(url, params: params, accept: "json").to_str

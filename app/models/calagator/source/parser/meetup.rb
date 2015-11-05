@@ -2,11 +2,12 @@ module Calagator
 
 class Source::Parser::Meetup < Source::Parser
   self.label = :Meetup
-  self.url_pattern = %r{^http://(?:www\.)?meetup\.com/[^/]+/events/([^/]+)/?}
+  self.url_pattern = %r{^http://(?:www\.)?meetup\.com/([^/]+)/events/([^/]+)/?}
 
   def to_events
     return fallback unless Calagator.meetup_api_key.present?
     return unless data = get_data
+    p "RETURNED DATA: #{data}"
     start_time = Time.at(data['time']/1000).utc
     event = Event.new({
       source:      source,
@@ -34,13 +35,13 @@ class Source::Parser::Meetup < Source::Parser
   end
 
   def get_data
-    to_events_api_helper(url, "problem") do |event_id|
+    to_events_api_helper(url, "problem") do |group_name, event_id|
       [
-        "https://api.meetup.com/2/event/#{event_id}",
+        "https://api.meetup.com/#{group_name}/events/#{event_id}",
         {
           key: Calagator.meetup_api_key,
           sign: 'true',
-          fields: 'topics'
+          fields: 'group_topics'
         }
       ]
     end
